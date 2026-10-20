@@ -53,7 +53,8 @@ py main.py
 
 ### Các lệnh chạy riêng lẻ:
 ```bash
-py main.py scrape     # Chỉ thu thập dữ liệu bài viết mới
+py main.py 2years     # CRAWL TOÀN BỘ 2 NĂM: Thu thập bài viết + tất cả bình luận & phân tích
+py main.py scrape     # Chỉ thu thập dữ liệu bài viết mới (gần đây)
 py clean_dataset.py   # Lọc rác và làm sạch dữ liệu
 py main.py analyze    # Chỉ chạy phân tích sentiment trên dữ liệu hiện có
 ```

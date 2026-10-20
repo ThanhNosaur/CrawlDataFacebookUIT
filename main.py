@@ -138,6 +138,7 @@ def show_help():
 ║                                                              ║
 ║  Cách dùng:                                                  ║
 ║    py main.py              Chạy toàn bộ pipeline             ║
+║    py main.py 2years       Crawl 2 NĂM bài viết + bình luận  ║
 ║    py main.py scrape       Chỉ crawl dữ liệu                ║
 ║    py main.py analyze      Chỉ phân tích sentiment           ║
 ║    py main.py fallback     Dùng fallback scraper             ║
@@ -179,6 +180,10 @@ def main():
     
     if command == "scrape":
         run_scraper()
+    elif command in ["2years", "full"]:
+        print("\n🚀 BẮT ĐẦU CHẾ ĐỘ THU THẬP DỮ LIỆU TOÀN DIỆN 2 NĂM & TẤT CẢ BÌNH LUẬN...")
+        import scraper_full_2years
+        scraper_full_2years.main()
     elif command == "fallback":
         run_fallback_scraper()
     elif command == "analyze":
