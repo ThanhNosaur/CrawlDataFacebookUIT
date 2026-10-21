@@ -195,3 +195,6 @@ CrawDataFacebook/
    - Tần suất thu thập được áp dụng cơ chế Jitter ngẫu nhiên và giãn cách nghỉ tự nhiên, không gây tải đột biến hay ảnh hưởng đến hạ tầng máy chủ của Facebook và các trang được khảo sát.
 3. **Mục đích nghiên cứu & học thuật**:
    - Dữ liệu thu thập hoàn toàn từ các bài đăng công khai (Public Pages & Confessions), phục vụ cho bài toán nghiên cứu phân tích tâm lý, cảm xúc sinh viên và cải thiện chất lượng môi trường đào tạo đại học.
+  
+## Đặng Tuấn Thanh - 24521617
+
