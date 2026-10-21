@@ -41,8 +41,6 @@ Tất cả kết quả xử lý, phân loại và cơ sở dữ liệu được 
 | **`data/comments_2years_latest.csv`** | **Excel / CSV (UTF-8 BOM)** | Toàn bộ **4.773 bình luận** của sinh viên (tác giả, nội dung comment, thời gian, nhãn sentiment, điểm số cảm xúc). |
 | **`data/report_2years_20261021_101844.txt`** | **Báo cáo Thống kê** | Báo cáo định lượng chi tiết tổng kết tỷ lệ Tích cực / Tiêu cực / Trung lập của sinh viên UIT trong suốt 2 năm qua. |
 | **`data/fb_uit_2years.db`** | **SQLite Database** | **Cơ sở dữ liệu cốt lõi lưu trữ lũy tiến**: Bảng `posts` (560 bài) và bảng `comments` (4.773 bình luận). Cho phép tắt máy mở lại cào tiếp (Resume) không bao giờ mất dữ liệu hay cào trùng lặp. |
-| **`data/classified_posts_latest.csv`** | **CSV** | Dữ liệu mẫu bài viết kèm các từ khóa khen/chê nhận diện được (`matched_keywords`). |
-| **`data/classified_posts_latest.json`** | **JSON** | Dữ liệu định dạng JSON để tích hợp API hoặc web visualization. |
 
 ---
 
@@ -56,7 +54,7 @@ py -m playwright install chromium
 
 ### Bước 2: Chạy hệ thống thu thập 2 năm (Đầy đủ Bài viết + Bình luận + Phân tích)
 ```bash
-py main.py 2years
+py main.py
 ```
 *Hệ thống sẽ tự động thực hiện 4 giai đoạn:*
 1. **Giai đoạn 1 (Timeline Harvest)**: Tự động cuộn lùi thời gian đến đúng mốc 2 năm (730 ngày) trên cả 2 trang `UIT.Fanpage` và `UITconfess`, bóc tách từng bài viết vào database SQLite.
@@ -66,9 +64,9 @@ py main.py 2years
 
 ### Các lệnh chạy khác:
 ```bash
-py main.py            # Chạy pipeline cơ bản
-py main.py scrape     # Chỉ cào bài viết gần đây
+py main.py 2years     # Cào toàn bộ 2 năm bài viết và bình luận
 py main.py analyze    # Chỉ chạy phân tích sentiment trên database hiện có
+py main.py export     # Chỉ xuất database SQLite ra file CSV Excel
 ```
 
 ---

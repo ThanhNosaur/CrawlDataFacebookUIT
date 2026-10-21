@@ -1,211 +1,106 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
-Main Runner - Chạy toàn bộ pipeline
+Facebook UIT Scraper & Sentiment Analyzer - Main Entrypoint
 =============================================================================
-Thứ tự:
-1. Cài thư viện (nếu chưa có)
-2. Crawl bài viết từ Facebook
-3. Phân loại sentiment
-4. Tạo báo cáo
-
-Cách dùng:
-    py main.py          # Chạy toàn bộ
-    py main.py scrape   # Chỉ crawl
-    py main.py analyze  # Chỉ phân tích (cần có data trước)
-    py main.py fallback # Dùng fallback scraper
+Cách sử dụng:
+    py main.py            # Chạy toàn bộ pipeline (Crawl bài viết 2 năm, comment, sentiment, export)
+    py main.py 2years      # Cào toàn bộ 2 năm bài viết và bình luận
+    py main.py analyze    # Chỉ chạy phân tích sentiment trên database hiện có
+    py main.py export     # Xuất dữ liệu từ SQLite sang Excel CSV
+    py main.py install    # Cài đặt thư viện dependencies
+    py main.py help       # Hiện hướng dẫn sử dụng
 =============================================================================
 """
 
 import subprocess
 import sys
-import os
 from pathlib import Path
 
 
 def install_requirements():
     """Cài đặt thư viện từ requirements.txt."""
     req_file = Path(__file__).parent / "requirements.txt"
-    
     if not req_file.exists():
         print("❌ Không tìm thấy requirements.txt")
         return False
     
-    print("📦 Đang cài đặt thư viện...")
-    print("=" * 50)
-    
-    result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-r", str(req_file)],
-        capture_output=False,
-    )
-    
+    print("📦 Đang kiểm tra và cài đặt thư viện...")
+    result = subprocess.run([sys.executable, "-m", "pip", "install", "-r", str(req_file)])
     if result.returncode != 0:
-        print("⚠️ Một số thư viện có thể chưa cài được.")
-        print("   Thử cài thủ công: pip install -r requirements.txt")
+        print("⚠️ Một số thư viện chưa cài được, hãy thử chạy: pip install -r requirements.txt")
         return False
-    
-    print("✅ Đã cài xong thư viện!\n")
+    print("✅ Thư viện đã sẵn sàng!\n")
     return True
 
 
-def run_scraper():
-    """Chạy scraper: Ưu tiên V3 (có đăng nhập nếu có .env), fallback V2 (ẩn danh), fallback mbasic."""
-    env_file = Path(__file__).parent / ".env"
-    has_creds = False
-    if env_file.exists():
-        content = env_file.read_text(encoding="utf-8")
-        if "FB_EMAIL" in content and "FB_PASSWORD" in content:
-            has_creds = True
-
-    if has_creds:
-        print("\n" + "=" * 60)
-        print("🕷️ BƯỚC 1: CRAWL FACEBOOK V3 (TÀI KHOẢN ĐĂNG NHẬP)")
-        print("=" * 60 + "\n")
-        try:
-            from scraper_v3 import main as scrape_v3_main
-            posts = scrape_v3_main()
-            if posts:
-                return posts
-            print("⚠️ Scraper V3 không lấy được bài, chuyển sang Scraper V2 (ẩn danh)...")
-        except Exception as e:
-            print(f"\n⚠️ Scraper V3 gặp lỗi: {e}")
-            print("🔄 Chuyển sang Scraper V2 (ẩn danh)...\n")
-
-    print("\n" + "=" * 60)
-    print("🕷️ BƯỚC 1: CRAWL DỮ LIỆU TỪ FACEBOOK (PLAYWRIGHT V2 ẨN DANH)")
-    print("=" * 60 + "\n")
-    try:
-        from scraper_v2 import main as scrape_v2_main
-        posts = scrape_v2_main()
-        if posts:
-            return posts
-        print("⚠️ Playwright V2 không trích xuất được bài, thử fallback...")
-    except Exception as e:
-        print(f"\n⚠️ Playwright V2 gặp lỗi: {e}")
-        print("🔄 Chuyển sang fallback scraper...\n")
-
-    return run_fallback_scraper()
+def run_full_pipeline():
+    """Chạy toàn bộ pipeline 2 năm."""
+    print("\n" + "=" * 65)
+    print("🚀 BẮT ĐẦU PIPELINE THU THẬP & PHÂN TÍCH SENTIMENT UIT (2 NĂM)")
+    print("=" * 65 + "\n")
+    import scraper_full_2years
+    scraper_full_2years.main()
 
 
-def run_fallback_scraper():
-    """Chạy fallback scraper."""
-    print("\n" + "=" * 60)
-    print("🕷️ FALLBACK SCRAPER (mbasic.facebook.com)")
-    print("=" * 60 + "\n")
-    
-    try:
-        from scraper_fallback import main as fallback_main
-        posts = fallback_main()
-        return posts
-    except Exception as e:
-        print(f"❌ Fallback scraper cũng lỗi: {e}")
-        print("\n💡 GỢI Ý:")
-        print("   1. Kiểm tra kết nối internet / proxy")
-        print("   2. Thử bật VPN nếu IP bị rate limit")
-        print("   3. Chờ 15-30 phút rồi thử lại")
-        return None
+def run_sentiment_only():
+    """Chỉ chạy phân tích sentiment trên database hiện có."""
+    print("\n" + "=" * 65)
+    print("🧠 CHẠY PHÂN TÍCH SENTIMENT TRÊN DỮ LIỆU HIỆN CÓ")
+    print("=" * 65 + "\n")
+    import scraper_full_2years
+    scraper_full_2years.run_full_sentiment_analysis()
+    scraper_full_2years.export_db_to_csv()
 
 
-def run_analyzer():
-    """Chạy phân tích sentiment."""
-    print("\n" + "=" * 60)
-    print("🧠 BƯỚC 2: PHÂN TÍCH SENTIMENT")
-    print("=" * 60 + "\n")
-    
-    data_file = Path(__file__).parent / "data" / "raw_posts_latest.json"
-    if not data_file.exists():
-        print(f"❌ Chưa có dữ liệu: {data_file}")
-        print("   Hãy chạy scraper trước!")
-        return None
-    
-    try:
-        from sentiment_analyzer import main as analyze_main
-        classified = analyze_main()
-        return classified
-    except Exception as e:
-        print(f"❌ Lỗi phân tích: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
+def export_only():
+    """Chỉ xuất SQLite ra CSV."""
+    print("\n" + "=" * 65)
+    print("💾 XUẤT CƠ SỞ DỮ LIỆU RA CSV")
+    print("=" * 65 + "\n")
+    import scraper_full_2years
+    scraper_full_2years.export_db_to_csv()
 
 
 def show_help():
-    """Hiện hướng dẫn."""
     print("""
 ╔══════════════════════════════════════════════════════════════╗
-║        FACEBOOK UIT SCRAPER & SENTIMENT ANALYZER            ║
+║        FACEBOOK UIT SCRAPER & SENTIMENT ANALYZER             ║
 ╠══════════════════════════════════════════════════════════════╣
+║  Lệnh chạy:                                                  ║
+║    py main.py            Chạy toàn bộ quy trình 2 năm        ║
+║    py main.py 2years     Chạy cào 2 năm + bình luận          ║
+║    py main.py analyze    Chỉ phân tích sentiment trên DB     ║
+║    py main.py export     Chỉ xuất file CSV ra Excel          ║
+║    py main.py install    Cài đặt dependencies                ║
+║    py main.py help       Hiện hướng dẫn                      ║
 ║                                                              ║
-║  Cách dùng:                                                  ║
-║    py main.py              Chạy toàn bộ pipeline             ║
-║    py main.py 2years       Crawl 2 NĂM bài viết + bình luận  ║
-║    py main.py scrape       Chỉ crawl dữ liệu                ║
-║    py main.py analyze      Chỉ phân tích sentiment           ║
-║    py main.py fallback     Dùng fallback scraper             ║
-║    py main.py install      Chỉ cài thư viện                  ║
-║    py main.py help         Hiện hướng dẫn này                ║
-║                                                              ║
-║  Output:                                                     ║
-║    data/raw_posts_latest.json       Dữ liệu thô             ║
-║    data/classified_posts_latest.csv Đã phân loại             ║
-║    data/report_*.txt                Báo cáo tổng hợp         ║
-║    logs/                            Log files                 ║
-║                                                              ║
-║  An toàn:                                                    ║
-║    ✅ Không cần đăng nhập Facebook                           ║
-║    ✅ Random delay giữa các request                          ║
-║    ✅ User-Agent rotation                                    ║
-║    ✅ Chỉ crawl page PUBLIC                                  ║
-║                                                              ║
+║  Dữ liệu đầu ra:                                             ║
+║    data/fb_uit_2years.db           Cơ sở dữ liệu SQLite      ║
+║    data/posts_2years_latest.csv    Bài viết kèm Sentiment    ║
+║    data/comments_2years_latest.csv Bình luận kèm Sentiment   ║
+║    data/report_2years_*.txt        Báo cáo thống kê tổng kết ║
 ╚══════════════════════════════════════════════════════════════╝
     """)
 
 
 def main():
-    # Parse arguments
     args = sys.argv[1:] if len(sys.argv) > 1 else []
     command = args[0].lower() if args else "all"
-    
+
     if command == "help":
         show_help()
         return
-    
     if command == "install":
         install_requirements()
         return
-    
-    # Luôn cài thư viện trước
-    print("🔧 Kiểm tra và cài đặt thư viện...")
-    install_requirements()
-    
-    if command == "scrape":
-        run_scraper()
-    elif command in ["2years", "full"]:
-        print("\n🚀 BẮT ĐẦU CHẾ ĐỘ THU THẬP DỮ LIỆU TOÀN DIỆN 2 NĂM & TẤT CẢ BÌNH LUẬN...")
-        import scraper_full_2years
-        scraper_full_2years.main()
-    elif command == "fallback":
-        run_fallback_scraper()
+
+    if command in ["all", "2years", "full"]:
+        run_full_pipeline()
     elif command == "analyze":
-        run_analyzer()
-    elif command == "all":
-        # Chạy toàn bộ pipeline
-        posts = run_scraper()
-        
-        if posts:
-            classified = run_analyzer()
-            
-            if classified:
-                print("\n" + "=" * 60)
-                print("🎉 HOÀN TẤT TOÀN BỘ PIPELINE!")
-                print("=" * 60)
-                print(f"   📄 Dữ liệu thô:    data/raw_posts_latest.json")
-                print(f"   📊 Đã phân loại:    data/classified_posts_latest.csv")
-                print(f"   📋 Báo cáo:         data/report_*.txt")
-                print(f"   📝 Logs:            logs/")
-        else:
-            print("\n⚠️ Không crawl được dữ liệu.")
-            print("💡 Thử chạy: py main.py fallback")
+        run_sentiment_only()
+    elif command == "export":
+        export_only()
     else:
         print(f"❌ Lệnh không hợp lệ: {command}")
         show_help()
