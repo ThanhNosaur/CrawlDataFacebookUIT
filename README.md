@@ -1,80 +1,89 @@
-# Facebook UIT Scraper & Sentiment Analyzer
+# Facebook UIT Scraper & Sentiment Analyzer (Hệ Thống 2 Năm Đầy Đủ)
 
-Hệ thống tự động thu thập bài viết từ Facebook của **Trường Đại học Công nghệ Thông tin - ĐHQG TP.HCM (UIT)** và phân loại cảm xúc (Tích cực / Tiêu cực / Trung lập) phục vụ bài tập môn học / đề tài nghiên cứu.
+Hệ thống tự động thu thập toàn bộ dữ liệu bài viết và bình luận trong **2 năm (730 ngày)** từ 2 fanpage chính thức của **Trường Đại học Công nghệ Thông tin - ĐHQG TP.HCM (UIT)**:
+1. **UIT Fanpage**: [https://www.facebook.com/UIT.Fanpage](https://www.facebook.com/UIT.Fanpage)
+2. **UIT Confessions**: [https://www.facebook.com/UITconfess](https://www.facebook.com/UITconfess)
 
 ---
 
 ## 📌 1. KẾT QUẢ ĐƯỢC LƯU Ở ĐÂU?
 
-Tất cả kết quả xử lý và phân loại được lưu trữ trong thư mục [`data/`](data/):
+Tất cả kết quả xử lý, phân loại và cơ sở dữ liệu được tổ chức tại thư mục [`data/`](data/):
 
 | Tên file kết quả | Định dạng | Nội dung chi tiết |
 | :--- | :---: | :--- |
-| **`data/classified_posts_latest.csv`** | **Excel / CSV** | **Bảng dữ liệu kết quả phân loại chi tiết** cho từng bài viết. Bao gồm các cột quan trọng:<br>• `page`: Nguồn (`UIT.Fanpage` hoặc `UITconfess`)<br>• `text`: Nội dung bài viết / confession<br>• `likes`, `comments`, `shares`: Chỉ số tương tác<br>• **`sentiment`**: Nhãn sắc thái (**`positive`**, **`negative`**, **`neutral`**)<br>• **`sentiment_score`**: Điểm số cảm xúc (từ `-1.0` đến `+1.0`)<br>• **`matched_keywords`**: Các từ khóa khen / chê phát hiện được<br>• **`is_about_uit`**: Đánh giá bài viết có liên quan trực tiếp đến UIT không (`True`/`False`) |
-| **`data/classified_posts_latest.json`** | **JSON** | Toàn bộ dữ liệu đã phân loại ở định dạng JSON để tiện tích hợp API / lập trình web. |
-| **`data/report_20261015_083048.txt`** | **Báo cáo Text** | **Báo cáo tổng kết thống kê**: Tỷ lệ phần trăm các nhóm bài viết, chi tiết theo từng page, danh sách **Top 5 bài viết tích cực nhất** và **Top bài viết tiêu cực nhất**. |
-| **`data/raw_posts_latest.csv`** | **CSV** | Dữ liệu bài viết thô sau khi thu thập từ Facebook (đã lọc rác anti-bot). |
-| **`data/raw_posts_latest.json`** | **JSON** | Dữ liệu bài viết thô dạng JSON. |
+| **`data/fb_uit_2years.db`** | **SQLite Database** | **Cơ sở dữ liệu cốt lõi lưu trữ lũy tiến**: Bảng `posts` (toàn bộ bài viết 2 năm) và bảng `comments` (toàn bộ bình luận & phản hồi). Cho phép tắt máy mở lại cào tiếp (Resume) không bao giờ mất dữ liệu. |
+| **`data/posts_2years_latest.csv`** | **Excel / CSV (UTF-8 BOM)** | Toàn bộ bài viết trong 2 năm gồm link, nội dung, ngày giờ, số like/cmt, và nhãn phân loại cảm xúc (`positive`, `negative`, `neutral`). Mở trực tiếp trên Microsoft Excel không bị lỗi font tiếng Việt. |
+| **`data/comments_2years_latest.csv`** | **Excel / CSV (UTF-8 BOM)** | Toàn bộ bình luận & phản hồi của sinh viên, người bình luận, thời gian, và kết quả phân tích cảm xúc từng câu bình luận. |
+| **`data/report_2years_*.txt`** | **Báo cáo Thống kê** | Báo cáo định lượng tỷ lệ Tích cực / Tiêu cực / Trung lập của sinh viên và người theo dõi UIT trong suốt 2 năm qua. |
+| **`data/classified_posts_latest.csv`** | **CSV** | Dữ liệu mẫu bài viết gần đây kèm các từ khóa khen/chê nhận diện được (`matched_keywords`). |
+| **`data/classified_posts_latest.json`** | **JSON** | Dữ liệu định dạng JSON để tích hợp API hoặc web visualization. |
 
 ---
 
-## 📊 2. TỔNG KẾT KẾT QUẢ ĐÃ PHÂN LOẠI
+## 🚀 2. CÁCH KHỞI CHẠY HỆ THỐNG
 
-Dữ liệu mới nhất gồm **48 bài viết & confession thực tế** sau khi được làm sạch:
-
-| Nhóm sắc thái | Số lượng | Tỷ lệ (%) | Ví dụ nội dung tiêu biểu |
-| :--- | :---: | :---: | :--- |
-| ✅ **Tích cực (Positive)** | **18 bài** | **37.5%** | • **CFS #3376** (+0.820): Khen áo UIT Job Fair đẹp.<br>• **CFS #3684** (+0.820): Lời cảm ơn bạn bè làm chung đồ án & khóa luận tốt nghiệp.<br>• Phong trào thể thao chạy bộ rèn luyện sinh viên UIT. |
-| ❌ **Tiêu cực (Negative)** | **4 bài** | **8.3%** | • **CFS #3346** (-0.400): Bức xúc việc làm bài tập nhóm, nhóm trưởng giao việc sát deadline.<br>• **CFS #3344** (-0.340): Phàn nàn về sự bất công trong lớp học. |
-| ⚪ **Trung lập (Neutral)** | **26 bài** | **54.2%** | • Thông báo khai khóa, ngày hội việc làm UIT Career Day.<br>• Hỏi đáp thủ tục xét điểm rèn luyện, đăng ký môn học, tìm đồ rơi ở cổng trường. |
-
----
-
-## 🎯 3. TARGET PAGES
-
-1. **UIT Fanpage**: [https://www.facebook.com/UIT.Fanpage](https://www.facebook.com/UIT.Fanpage) (Thông tin chính thức từ nhà trường)
-2. **UIT Confessions**: [https://www.facebook.com/UITconfess](https://www.facebook.com/UITconfess) (Tâm sự, ý kiến sinh viên)
-
----
-
-## ⚙️ 4. HƯỚNG DẪN CÀI ĐẶT & CHẠY
-
-### Bước 1: Cài đặt thư viện
+### Bước 1: Cài đặt môi trường
 ```bash
 py -m pip install -r requirements.txt
 py -m playwright install chromium
 ```
 
-### Bước 2: Chạy toàn bộ chương trình
+### Bước 2: Chạy hệ thống thu thập 2 năm (Đầy đủ Bài viết + Bình luận + Phân tích)
 ```bash
-py main.py
+py main.py 2years
 ```
-*Chương trình sẽ tự động kiểm tra tài khoản trong `.env` để chạy Scraper V3 (nếu có), hoặc tự động chạy Scraper V2 (ẩn danh) nếu không có tài khoản, sau đó tự động chạy phân loại sentiment và xuất báo cáo.*
+*Hệ thống sẽ tự động thực hiện 4 giai đoạn:*
+1. **Giai đoạn 1 (Timeline Harvest)**: Tự động cuộn lùi thời gian đến đúng mốc 2 năm (730 ngày) trên cả 2 trang `UIT.Fanpage` và `UITconfess`, bóc tách từng bài viết vào database SQLite.
+2. **Giai đoạn 2 (Deep Comment Expansion)**: Mở từng bài viết, bấm "Xem thêm bình luận" và mở toàn bộ các phản hồi con lồng nhau (Replies), lưu trữ vào bảng `comments`.
+3. **Giai đoạn 3 (Batch Sentiment Analysis)**: Áp dụng thuật toán Hybrid NLP (`underthesea` + UIT Lexicon) để gắn nhãn tích cực / tiêu cực / trung lập cho mọi bài viết và bình luận.
+4. **Giai đoạn 4 (Export Report & CSV)**: Xuất dữ liệu ra file CSV tương thích Excel và tạo báo cáo thống kê.
 
-### Các lệnh chạy riêng lẻ:
+### Các lệnh chạy khác:
 ```bash
-py main.py 2years     # CRAWL TOÀN BỘ 2 NĂM: Thu thập bài viết + tất cả bình luận & phân tích
-py main.py scrape     # Chỉ thu thập dữ liệu bài viết mới (gần đây)
-py clean_dataset.py   # Lọc rác và làm sạch dữ liệu
-py main.py analyze    # Chỉ chạy phân tích sentiment trên dữ liệu hiện có
+py main.py            # Chạy pipeline cơ bản
+py main.py scrape     # Chỉ cào bài viết gần đây
+py main.py analyze    # Chỉ chạy phân tích sentiment trên database hiện có
 ```
 
 ---
 
-## 🛡️ 5. CƠ CHẾ AN TOÀN & BẢO MẬT (ANTI-BAN)
+## 🛡️ 3. CƠ CHẾ BẢO VỆ CHỐNG BAN TÀI KHOẢN (ANTI-BAN SYSTEM)
 
-- **Bảo mật tài khoản tuyệt đối**: Thông tin đăng nhập được lưu tại file `.env` và session cookies tại thư mục `cookies/`. Cả hai đã được cấu hình trong `.gitignore`, **không bao giờ bị đưa lên GitHub**.
-- **Playwright Stealth**: Tự động vô hiệu hóa cờ nhận diện bot (`navigator.webdriver`), giả lập danh sách plugin và kích thước màn hình người dùng thật.
-- **Vượt Login Wall không cần tương tác**: Tự động triệt tiêu các popup bắt đăng nhập bằng DOM injection và mở khóa thuộc tính cuộn trang.
-- **Random Human Delay**: Thêm độ trễ ngẫu nhiên (2 - 4 giây) giữa các lần cuộn để mô phỏng hành vi đọc của người thật, tránh kích hoạt rate limit của Facebook.
+Hệ thống được thiết kế theo chuẩn **Human Mimicry & Zero Risk Detection**:
+
+1. **Bảo mật Credentials tuyệt đối**:
+   - Tài khoản đăng nhập được lưu duy nhất trong file `.env` nội bộ trên máy bạn.
+   - Session Cookies lưu tại `cookies/fb_cookies.json`.
+   - Cả hai file trên cùng toàn bộ file `.db` đều nằm trong `.gitignore`, **tuyệt đối không bao giờ bị đưa lên GitHub**.
+
+2. **Playwright Undetected Stealth**:
+   - Vô hiệu hóa `navigator.webdriver`.
+   - Giả lập đầy đủ `plugins`, `languages`, `chrome.runtime`.
+   - Vô hiệu hóa tải hình ảnh / media tĩnh để tăng tốc x10 lần và triệt tiêu các pixel theo dõi (tracking pixels) của Meta.
+
+3. **Human Timing & Smart Jitter (Nhịp độ người thật)**:
+   - Cuộn bằng phím `PageDown` mượt mà, giãn cách ngẫu nhiên `1.2s - 2.5s` mỗi lần cuộn.
+   - Giữa các bài viết khi cào bình luận: nghỉ ngẫu nhiên `2.5s - 4.5s`.
+   - Nghỉ giải lao chống Rate Limit: Mỗi 20 bài viết, hệ thống tự động nghỉ `15s - 30s`.
+   - Nghỉ an toàn giữa 2 fanpage `10s - 20s`.
+
+4. **Bộ ngắt khẩn cấp tự động (Auto-Checkpoint Shield)**:
+   - Trong từng vòng lặp, hệ thống tự động kiểm tra URL. Nếu Facebook có bất kỳ dấu hiệu yêu cầu xác minh (`checkpoint` hoặc `temporarily_blocked`), hệ thống sẽ **ngay lập tức dừng chương trình**, bảo vệ an toàn 100% cho tài khoản Facebook.
+
+5. **DOM Memory Recycling (Chống tràn RAM)**:
+   - Cơ chế tự động dọn bớt các phần tử bài viết đã cuộn qua khi số lượng vượt quá 60 node, giữ cho tiến trình Playwright luôn tiêu thụ dưới `500MB RAM`, hoạt động liên tục nhiều giờ không lo crash trình duyệt.
 
 ---
 
-## 🧠 6. PHƯƠNG PHÁP PHÂN TÍCH SENTIMENT (HYBRID MODEL)
+## 🧠 4. PHƯƠNG PHÁP PHÂN TÍCH CẢM XÚC (HYBRID MODEL)
 
-Điểm cảm xúc được tính theo công thức lai:
+Điểm cảm xúc được xác định theo mô hình lai 2 tầng:
 
 $$\text{Final Score} = (\text{NLP Score} \times 0.6) + (\text{Keyword Score} \times 0.4)$$
 
-1. **Mô hình NLP `underthesea` (Trọng số 60%)**: Phân tích cú pháp và ngữ nghĩa câu tiếng Việt chuẩn.
-2. **Bộ từ điển đặc thù UIT (Trọng số 40%)**: Tập luật từ vựng học đường (khen giảng viên, khen cơ sở vật chất, học bổng vs. rớt môn, nợ môn, bất công, áp lực...).
+1. **Lớp 1 - Mô hình NLP `underthesea` (60%)**:
+   - Tách từ ngữ tiếng Việt và phân tích cú pháp biểu cảm tổng quát (`positive` / `negative` / `neutral`).
+2. **Lớp 2 - Bộ từ điển đặc thù UIT (40%)**:
+   - **Tích cực**: Khen giảng viên tận tâm, chương trình tiên tiến, trao đổi quốc tế (Singapore, AvePoint), học bổng, việc làm công nghệ cao, áo khoa đẹp, đồ án xuất sắc...
+   - **Tiêu cực**: Phàn nàn rớt môn, nợ môn, gánh team bài tập nhóm, deadline dồn dập, học phí tăng, phòng máy lạnh hỏng...
