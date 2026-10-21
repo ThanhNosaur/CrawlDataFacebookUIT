@@ -1,0 +1,16 @@
+======================================================================
+📊 BÁO CÁO PHÂN TÍCH TỔNG HỢP SENTIMENT 2 NĂM (UIT FACEBOOK)
+   Thời gian tạo: 21/10/2026 10:18:44
+======================================================================
+
+📈 1. THỐNG KÊ BÀI VIẾT (UIT.Fanpage & UITconfess):
+   • negative: 39 bài
+   • neutral: 296 bài
+   • positive: 225 bài
+
+💬 2. THỐNG KÊ BÌNH LUẬN CỦA SINH VIÊN:
+   • negative: 833 bình luận
+   • neutral: 2307 bình luận
+   • positive: 1633 bình luận
+
+======================================================================
